@@ -1,0 +1,7 @@
+*.sublime-*
+*.o
+*.d
+
+.cache
+.clangd
+compile_commands.json
