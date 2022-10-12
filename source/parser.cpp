@@ -26,20 +26,20 @@ namespace cdb
 
 	ErrorOr<void> parseCommandOutput(Database& db, MakeState& ms, std::string_view line)
 	{
-		if(line.starts_with("make: Entering directory `") ||
-			(line.starts_with("make[") && line.find("]: Entering directory `") != std::string_view::npos))
+		if(line.starts_with("make: Entering directory ") ||
+			(line.starts_with("make[") && line.find("]: Entering directory ") != std::string_view::npos))
 		{
-			auto dir = line.substr(1 + line.find_first_of('`'));
+			auto dir = line.substr(1 + line.find_first_of("'`"));
 			assert(dir.back() == '\'');
 			dir.remove_suffix(1);
 
 			zpr::println("{} # {}", zpr::w(static_cast<int>(ms.dir_stack.size() * 2))(""), dir);
 			ms.dir_stack.push_back(dir);
 		}
-		else if(line.starts_with("make: Leaving directory `") ||
-				(line.starts_with("make[") && line.find("]: Leaving directory `") != std::string_view::npos))
+		else if(line.starts_with("make: Leaving directory ") ||
+				(line.starts_with("make[") && line.find("]: Leaving directory ") != std::string_view::npos))
 		{
-			auto dir = line.substr(1 + line.find_first_of('`'));
+			auto dir = line.substr(1 + line.find_first_of("'`"));
 			assert(dir.back() == '\'');
 			dir.remove_suffix(1);
 
