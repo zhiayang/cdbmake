@@ -24,6 +24,11 @@ namespace cdb
 				extra_args.push_back(arg);
 				it = args.erase(it);
 			}
+			else if(not ignore_rest && arg.starts_with("-W"))
+			{
+				extra_args.push_back(arg);
+				it = args.erase(it);
+			}
 			else if(not ignore_rest && (arg == "-n" || arg == "--dry-run"))
 			{
 				dry_run = true;
@@ -66,12 +71,13 @@ usage: cdbmake [options...] [make options...]
 Options:
     -h, --help      display this help
     -n, --dry-run   don't write out compile_commands.json (but print it out)
-    -I<path>        add an additional '-I<path>' argument to all files
-                    in the compilation database
-    -D<arg>         add an additional '-D<arg>' argument to all files
+
+    -I<path>
+    -D<arg>
+    -W<arg>         add the corresponding argument to all files
                     in the compilation database
 
-To prevent parsing of '-n', '-I', and '-D' options, use '--', for example
+To prevent parsing of '-n', '-I', '-W', and '-D' options, use '--', for example
 $ cdbmake -- -Iaoeu
 
 The first unknown argument, or all arguments after '--', will be passed directly
