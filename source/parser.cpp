@@ -24,6 +24,27 @@ namespace cdb
 		       str.ends_with(".cxx") || str.ends_with(".hh") || str.ends_with(".hpp") || str.ends_with(".hxx");
 	}
 
+	static std::string unescape_string(std::string_view s)
+	{
+		std::string ret {};
+		ret.reserve(s.size());
+
+		// this is kinda rudimentary and not 100% correct, but it works for my use case.
+		for(size_t i = 0; i < s.size(); i++)
+		{
+			if(s[i] == '\\')
+			{
+				continue;
+			}
+			else
+			{
+				ret.push_back(s[i]);
+			}
+		}
+
+		return ret;
+	}
+
 	ErrorOr<void> parseCommandOutput(Database& db, MakeState& ms, std::string_view line)
 	{
 		if(line.starts_with("make: Entering directory ") ||
@@ -75,7 +96,7 @@ namespace cdb
 			else if(ignore_next)
 				ignore_next = false;
 
-			cmd.args.emplace_back(parts[i]);
+			cmd.args.emplace_back(unescape_string(parts[i]));
 		}
 
 		if(cmd.file.empty())
