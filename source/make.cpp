@@ -71,9 +71,8 @@ namespace cdb
 		// k: keep going on errors
 		// w: print directory changes
 		// B: force rebuild all targets
-		args.push_back("-kwB");
 		args.push_back("-j1");
-		args.push_back("-n");
+		args.push_back("-knwB");
 
 		MakeState ms {};
 		TRY(run_make_with_args(args, ([&db, &ms](std::string_view line) -> ErrorOr<void> {
@@ -83,7 +82,9 @@ namespace cdb
 		})));
 
 		args.pop_back();
+		args.pop_back();
 		TRY(run_make_with_args(args, ([](std::string_view line) -> ErrorOr<void> {
+			zpr::println("{}", line);
 			return Ok();
 		})));
 
