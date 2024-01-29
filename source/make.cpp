@@ -23,16 +23,9 @@ namespace cdb
 		}
 	}
 
-
-	ErrorOr<void> runMake(Database& db, std::vector<std::string> args)
+	template <typename LineCallback>
+	static ErrorOr<void> run_make_with_args(const std::vector<std::string>& args, LineCallback&& line_callback)
 	{
-		// n: dry run (and print commands)
-		// k: keep going on errors
-		// w: print directory changes
-		// B: force rebuild all targets
-		args.push_back("-nkwB");
-		args.push_back("-j1");
-
 		zpr::println("** running: make {}", args);
 
 		auto foo = zpp::runProcess("make", args);
@@ -46,7 +39,7 @@ namespace cdb
 		size_t stdout_skip_idx = 0;
 		size_t stderr_skip_idx = 0;
 
-		MakeState ms {};
+		// MakeState ms {};
 
 		while(make.isAlive())
 		{
@@ -59,8 +52,7 @@ namespace cdb
 					if(auto line = consume_one_line(stdout, stdout_skip_idx); line.has_value())
 					{
 						parsed = true;
-						if(auto x = parseCommandOutput(db, ms, *line); x.is_err())
-							return Err(x.error());
+						TRY(line_callback(*line));
 					}
 
 					if(auto line = consume_one_line(stderr, stderr_skip_idx); line.has_value())
@@ -69,6 +61,31 @@ namespace cdb
 				} while(parsed);
 			}
 		}
+
+		return Ok();
+	}
+
+	ErrorOr<void> runMake(Database& db, std::vector<std::string> args, bool wet_run)
+	{
+		// n: dry run (and print commands)
+		// k: keep going on errors
+		// w: print directory changes
+		// B: force rebuild all targets
+		args.push_back("-kwB");
+		args.push_back("-j1");
+		args.push_back("-n");
+
+		MakeState ms {};
+		TRY(run_make_with_args(args, ([&db, &ms](std::string_view line) -> ErrorOr<void> {
+			if(auto x = parseCommandOutput(db, ms, line); x.is_err())
+				return Err(x.error());
+			return Ok();
+		})));
+
+		args.pop_back();
+		TRY(run_make_with_args(args, ([](std::string_view line) -> ErrorOr<void> {
+			return Ok();
+		})));
 
 		return Ok();
 	}

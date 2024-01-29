@@ -16,7 +16,7 @@
 */
 
 /*
-    Version 1.4.2
+    Version 1.4.2-modified
     =============
 
 
@@ -1309,13 +1309,32 @@ namespace zst
 	template <typename E>
 	using Failable = Result<void, E>;
 
-#define TRY(x)                                     \
-	({                                             \
-		auto result = (x);                         \
-		if(result.is_err())                        \
-			return Err(std::move(result.error())); \
-		std::move(result.unwrap());                \
+
+	template <typename T, typename E>
+	struct extract_value_or_return_void
+	{
+		T extract(zst::Result<T, E>& result) { return std::move(result.unwrap()); }
+	};
+
+	template <typename E>
+	struct extract_value_or_return_void<void, E>
+	{
+		void extract([[maybe_unused]] zst::Result<void, E>& result) { }
+	};
+
+#define __TRY(x, L)                                                             \
+	__extension__({                                                             \
+		auto&& __r##L = x;                                                      \
+		using R##L = std::decay_t<decltype(__r##L)>;                            \
+		using V##L = typename R##L::value_type;                                 \
+		using E##L = typename R##L::error_type;                                 \
+		if((__r##L).is_err())                                                   \
+			return Err(std::move((__r##L).error()));                            \
+		zst::extract_value_or_return_void<V##L, E##L>().extract(__r##L); \
 	})
+
+#define _TRY(x, L) __TRY(x, L)
+#define TRY(x) _TRY(x, __COUNTER__)
 }
 
 

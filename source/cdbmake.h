@@ -92,7 +92,7 @@ namespace cdb
 		std::vector<stdfs::path> dir_stack;
 	};
 
-	ErrorOr<void> runMake(Database& db, std::vector<std::string> args);
+	ErrorOr<void> runMake(Database& db, std::vector<std::string> args, bool wet_run);
 	ErrorOr<void> parseCommandOutput(Database& db, MakeState& ms, std::string_view line);
 
 	void writeCompileCommandsJson(const Database& db, bool write_file, const stdfs::path& json);

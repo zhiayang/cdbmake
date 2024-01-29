@@ -11,6 +11,7 @@ namespace cdb
 		auto db = TRY(parseCompileCommandsJson("compile_commands.json"));
 
 		bool dry_run = false;
+		bool wet_run = false;
 		std::vector<std::string> extra_args {};
 
 		// parse "our" arguments
@@ -34,6 +35,11 @@ namespace cdb
 				dry_run = true;
 				it = args.erase(it);
 			}
+			else if(not ignore_rest && (arg == "-r" || arg == "--run"))
+			{
+				wet_run = true;
+				it = args.erase(it);
+			}
 			else
 			{
 				ignore_rest = true;
@@ -44,7 +50,7 @@ namespace cdb
 			}
 		}
 
-		if(auto e = runMake(db, args); e.is_err())
+		if(auto e = runMake(db, args, /* wet: */ wet_run); e.is_err())
 			return Err(e.error());
 
 		for(auto& [_, file] : db.files)
@@ -71,6 +77,8 @@ usage: cdbmake [options...] [make options...]
 Options:
     -h, --help      display this help
     -n, --dry-run   don't write out compile_commands.json (but print it out)
+    -r, --wet-run   run make to build the project (for real) after
+                    generating the compile commands
 
     -I<path>
     -D<arg>
