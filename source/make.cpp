@@ -81,12 +81,15 @@ namespace cdb
 			return Ok();
 		})));
 
-		args.pop_back();
-		args.pop_back();
-		TRY(run_make_with_args(args, ([](std::string_view line) -> ErrorOr<void> {
-			zpr::println("{}", line);
-			return Ok();
-		})));
+		if(wet_run)
+		{
+			args.pop_back();
+			args.pop_back();
+			TRY(run_make_with_args(args, ([](std::string_view line) -> ErrorOr<void> {
+				zpr::println("{}", line);
+				return Ok();
+			})));
+		}
 
 		return Ok();
 	}
